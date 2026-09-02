@@ -2,99 +2,300 @@
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Clicker Game</title>
-    <!-- Monetag SDK Script -->
-    <script src='//ks041544.com/vignette.min.js' data-zone='YOUR_ZONE_ID' data-sdk='show_YOUR_ZONE_ID'></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AI BG Changer - Mini App</title>
+    <!-- টেলিগ্রাম মিনি অ্যাপ লাইব্রেরী -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #1e1e2e;
-            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1c1c1e;
+            color: white;
+            margin: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
+            padding: 20px;
             user-select: none;
         }
-        .container {
-            text-align: center;
-            background-color: #2b2b3d;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-            width: 80%;
-            max-width: 350px;
+
+        h2 {
+            color: #4CAF50;
+            margin-bottom: 5px;
         }
-        h1 { font-size: 24px; margin-bottom: 10px; }
-        .score { font-size: 40px; color: #f1c40f; font-weight: bold; margin: 20px 0; }
-        .click-btn {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background-color: #e74c3c;
-            border: none;
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 8px 0 #c0392b;
-            transition: all 0.1s;
+
+        p.subtitle {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 20px;
         }
-        .click-btn:active {
-            transform: translateY(4px);
-            box-shadow: 0 4px 0 #c0392b;
-        }
-        .ad-btn {
-            margin-top: 25px;
-            padding: 12px 20px;
-            background-color: #2ecc71;
-            border: none;
-            color: white;
-            font-size: 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
+
+        .canvas-container {
             width: 100%;
+            max-width: 400px;
+            height: 300px;
+            background-color: #2c2c2e;
+            border: 2px dashed #444;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
         }
-        .ad-btn:hover { background-color: #27ae60; }
+
+        #outputCanvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        .placeholder-text {
+            color: #777;
+            text-align: center;
+        }
+
+        .controls {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+            transition: background 0.3s;
+        }
+
+        .btn:active {
+            background-color: #3e8e41;
+        }
+
+        .btn-blue {
+            background-color: #0088cc;
+        }
+
+        .btn-blue:active {
+            background-color: #006fa5;
+        }
+
+        .btn:disabled {
+            background-color: #444;
+            color: #777;
+            cursor: not-allowed;
+        }
+
+        #loading {
+            display: none;
+            color: cyan;
+            font-size: 14px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        /* মনিট্যাগ এড বসানোর জায়গা */
+        #ad-banner {
+            margin-top: auto;
+            width: 100%;
+            height: 50px;
+            background-color: transparent;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>ক্লিক করুন ও ইনকাম করুন</h1>
-    <div class="score" id="score">0</div>
-    <button class="click-btn" onclick="addScore()">CLICK!</button>
-    <br>
-    <button class="ad-btn" onclick="watchAd()">ভিডিও অ্যাড দেখুন (+১০০ পয়েন্ট)</button>
-</div>
+    <h2>AI BG Changer</h2>
+    <p class="subtitle">মুহূর্তেই ব্যাকগ্রাউন্ড সরান ও চেঞ্জ করুন!</p>
 
-<script>
-    let count = 0;
+    <div class="canvas-container" id="container">
+        <canvas id="outputCanvas"></canvas>
+        <div class="placeholder-text" id="placeholder">আপনার ছবি আপলোড করুন</div>
+        <div id="loading">AI প্রক্রিয়াকরণ হচ্ছে...</div>
+    </div>
 
-    function addScore() {
-        count += 1;
-        document.getElementById("score").innerText = count;
-    }
+    <div class="controls">
+        <!-- ১. ছবি আপলোড বাটন -->
+        <label for="imageLoader" class="btn">🖼️ ১. ছবি আপলোড করুন</label>
+        <input type="file" id="imageLoader" accept="image/*">
 
-    function watchAd() {
-        // Monetag Rewarded Ad Call
-        if (typeof show_YOUR_ZONE_ID === 'function') {
-            show_YOUR_ZONE_ID().then(() => {
-                count += 100;
-                document.getElementById("score").innerText = count;
-                alert("অভিনন্দন! আপনি ১০০ বোনাস পয়েন্ট পেয়েছেন।");
-            }).catch(() => {
-                alert("অ্যাড লোড হতে সমস্যা হয়েছে, কিছুক্ষণ পর আবার চেষ্টা করুন।");
-            });
-        } else {
-            alert("Monetag Zone ID বসানো হয়নি অথবা অ্যাড লোড হয়নি।");
+        <!-- ২. ব্যাকগ্রাউন্ড চেঞ্জ বাটন -->
+        <label for="bgLoader" class="btn btn-blue" id="btnChangeBg" style="display:none;">🌄 ২. নতুন ব্যাকগ্রাউন্ড দিন</label>
+        <input type="file" id="bgLoader" accept="image/*">
+
+        <!-- ৩. ডাউনলোড বাটন -->
+        <button class="btn btn-blue" id="btnDownload" style="display:none;">⬇️ ৩. ডাউনলোড করুন</button>
+    </div>
+
+    <div id="ad-banner">
+        <!-- এখানে Monetag এর Banner বা In-Page Push স্ক্রিপ্ট বসাবেন -->
+        <p style="color:#444; font-size:10px;">Advertisement</p>
+    </div>
+
+    <!-- Monetag/Other Ad Scripts Here -->
+    <!-- EXAMPLE BANNER SCRIPT:
+    <script>
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer','YOUR_BANNER_TAG');
+    </script>
+    -->
+
+    <script>
+        // টেলিগ্রাম ইনিশিয়ালাইজেশন
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // অ্যাপটি পুরো স্ক্রিনে ওপেন করবে
+
+        const canvas = document.getElementById('outputCanvas');
+        const ctx = canvas.getContext('2d');
+        const placeholder = document.getElementById('placeholder');
+        const loading = document.getElementById('loading');
+
+        // বোতাম
+        const btnChangeBg = document.getElementById('btnChangeBg');
+        const btnDownload = document.getElementById('btnDownload');
+
+        // ছবির ভেরিয়েবল
+        let originalImage = null;
+        let foregroundImage = null; // ব্যাকগ্রাউন্ড ছাড়া ছবি
+        let backgroundImage = null;
+
+        // মনিট্যাগ অ্যাপ আইডি বা জোন আইডি (যদি লাগে)
+        // **মনিট্যাগ সেটআপ করার জন্য আপনাকে API বা একটি থার্ডপার্টি BG রিমুভাল লাইব্রেরি ব্যবহার করতে হবে**
+        // **এই কোডটি Free Client-side লাইব্রেরী `@imgly/background-removal` ব্যবহার করছে**
+        // আপনি চাইলে Paid API (like remove.bg) ও বসাতে পারেন।
+
+        // ছবি আপলোড হ্যান্ডলার
+        document.getElementById('imageLoader').addEventListener('change', handleOriginalImage);
+        document.getElementById('bgLoader').addEventListener('change', handleBackgroundImage);
+        btnDownload.addEventListener('click', downloadImage);
+
+        // ১. ছবি প্রক্রিয়াকরণ (ব্যাকগ্রাউন্ড রিমুভ)
+        function handleOriginalImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            originalImage = new Image();
+            originalImage.onload = function() {
+                // ক্যানভাস সাইজ ছবির সমান করুন
+                canvas.width = originalImage.width;
+                canvas.height = originalImage.height;
+                ctx.drawImage(originalImage, 0, 0);
+                placeholder.style.display = 'none';
+                loading.style.display = 'block';
+
+                // AI দিয়ে ব্যাকগ্রাউন্ড রিমুভ করা শুরু করুন
+                // এটি একটি ভারী কাজ, তাই লোডিং স্ক্রিন দেখাবে
+                removeBackground(file);
+            };
+            originalImage.src = URL.createObjectURL(file);
         }
-    }
-</script>
 
+        // ২. নতুন ব্যাকগ্রাউন্ড হ্যান্ডলার
+        function handleBackgroundImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            backgroundImage = new Image();
+            backgroundImage.onload = function() {
+                compositeImage(); // নতুন ব্যাকগ্রাউন্ড সহ ছবি আঁকুন
+            };
+            backgroundImage.src = URL.createObjectURL(file);
+        }
+
+        // AI ব্যাকগ্রাউন্ড রিমুভ লাইব্রেরী (লোড হতে সময় নিতে পারে)
+        async function removeBackground(file) {
+            // এই লাইব্রেরীটি সরাসরি ব্রাউজারে কাজ করে, কোনো Paid API লাগে না।
+            // কিন্তু এটি প্রথমবার লোড হতে ৩০-৬০ সেকেন্ড নিতে পারে।
+            if (!window.imgly) {
+                try {
+                    // ডাইনামিক লাইব্রেরী লোড
+                    await loadScript('https://cdn.jsdelivr.net/npm/@imgly/background-removal@latest/dist/imgly-background-removal.js');
+                } catch (err) {
+                    tg.showAlert("লাইব্রেরী লোড হতে সমস্যা হয়েছে। ইন্টারনেট চেক করুন।");
+                    loading.style.display = 'none';
+                    return;
+                }
+            }
+
+            try {
+                // ছবির ব্যাকগ্রাউন্ড রিমুভ
+                const blob = await imgly.backgroundRemoval(file);
+                foregroundImage = new Image();
+                foregroundImage.onload = function() {
+                    loading.style.display = 'none';
+                    btnChangeBg.style.display = 'block'; // ২য় বাটন দেখান
+                    btnDownload.style.display = 'block'; // ৩য় বাটন দেখান
+                    compositeImage(); // শুধু ফোরগ্রাউন্ড আঁকুন (ব্যাকগ্রাউন্ড ছাড়া)
+                };
+                foregroundImage.src = URL.createObjectURL(blob);
+            } catch (error) {
+                loading.style.display = 'none';
+                tg.showAlert("ছবি প্রক্রিয়াকরণে সমস্যা হয়েছে। ছোট ছবি ব্যবহার করে দেখুন।");
+                console.error(error);
+            }
+        }
+
+        // ছবি একত্রিত করা (ব্যাকগ্রাউন্ড + ফোরগ্রাউন্ড)
+        function compositeImage() {
+            if (!canvas.width || !foregroundImage) return;
+
+            // ক্যানভাস পরিষ্কার করুন
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // ২. নতুন ব্যাকগ্রাউন্ড আঁকুন (যদি থাকে)
+            if (backgroundImage) {
+                // ব্যাকগ্রাউন্ডকে ক্যানভাসের সাইজে ফিট করুন
+                ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+            } else {
+                // কোনো ব্যাকগ্রাউন্ড না থাকলে স্বচ্ছ থাকবে (চাইলে সাদা করতে পারেন)
+                // ctx.fillStyle = "white"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
+            // ৩. ফোরগ্রাউন্ড ছবি বসান
+            ctx.drawImage(foregroundImage, 0, 0);
+        }
+
+        // ছবি ডাউনলোড
+        function downloadImage() {
+            if (!foregroundImage) return;
+            const dataUrl = canvas.toDataURL("image/png");
+            const link = document.createElement('a');
+            link.download = 'bg_changed_image.png';
+            link.href = dataUrl;
+            link.click();
+            
+            tg.showScanQrPopup({text: 'অ্যাডটি দেখলে ডাউনলোড শুরু হবে!'}); // উদাহরণ টেলিগ্রাম পপআপ
+        }
+
+        // স্ক্রিপ্ট লোডার
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                script.onload = resolve;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+    </script>
 </body>
 </html>
