@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Clicker Game</title>
+    <!-- Monetag SDK Script -->
+    <script src='//ks041544.com/vignette.min.js' data-zone='YOUR_ZONE_ID' data-sdk='show_YOUR_ZONE_ID'></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e2e;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            user-select: none;
+        }
+        .container {
+            text-align: center;
+            background-color: #2b2b3d;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            width: 80%;
+            max-width: 350px;
+        }
+        h1 { font-size: 24px; margin-bottom: 10px; }
+        .score { font-size: 40px; color: #f1c40f; font-weight: bold; margin: 20px 0; }
+        .click-btn {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: #e74c3c;
+            border: none;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #c0392b;
+            transition: all 0.1s;
+        }
+        .click-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #c0392b;
+        }
+        .ad-btn {
+            margin-top: 25px;
+            padding: 12px 20px;
+            background-color: #2ecc71;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+        .ad-btn:hover { background-color: #27ae60; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ক্লিক করুন ও ইনকাম করুন</h1>
+    <div class="score" id="score">0</div>
+    <button class="click-btn" onclick="addScore()">CLICK!</button>
+    <br>
+    <button class="ad-btn" onclick="watchAd()">ভিডিও অ্যাড দেখুন (+১০০ পয়েন্ট)</button>
+</div>
+
+<script>
+    let count = 0;
+
+    function addScore() {
+        count += 1;
+        document.getElementById("score").innerText = count;
+    }
+
+    function watchAd() {
+        // Monetag Rewarded Ad Call
+        if (typeof show_YOUR_ZONE_ID === 'function') {
+            show_YOUR_ZONE_ID().then(() => {
+                count += 100;
+                document.getElementById("score").innerText = count;
+                alert("অভিনন্দন! আপনি ১০০ বোনাস পয়েন্ট পেয়েছেন।");
+            }).catch(() => {
+                alert("অ্যাড লোড হতে সমস্যা হয়েছে, কিছুক্ষণ পর আবার চেষ্টা করুন।");
+            });
+        } else {
+            alert("Monetag Zone ID বসানো হয়নি অথবা অ্যাড লোড হয়নি।");
+        }
+    }
+</script>
+
+</body>
+</html>
