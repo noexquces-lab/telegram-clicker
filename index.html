@@ -1,9 +1,9 @@
-!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BG Changer App</title>
+    <title>Easy BG Changer</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
@@ -55,13 +55,12 @@
 
         .btn-blue { background-color: #0088cc; }
         input[type="file"] { display: none; }
-        #loading { display: none; color: #00e676; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h2>BG Changer Tool</h2>
-    <p class="subtitle">সহজেই ছবিতে নতুন ব্যাকগ্রাউন্ড ফ্রেম যোগ করুন!</p>
+    <h2>Photo Editor Mini App</h2>
+    <p class="subtitle">সহজেই ছবিতে ব্যাকগ্রাউন্ড ও ফ্রেম যোগ করুন!</p>
 
     <div class="canvas-container">
         <canvas id="outputCanvas"></canvas>
@@ -71,7 +70,7 @@
     <label for="imageLoader" class="btn">🖼️ ১. ছবি আপলোড করুন</label>
     <input type="file" id="imageLoader" accept="image/*">
 
-    <label for="bgLoader" class="btn btn-blue" id="btnChangeBg" style="display:none;">🌄 ২. ব্যাকগ্রাউন্ড ইমেজ যুক্ত করুন</label>
+    <label for="bgLoader" class="btn btn-blue" id="btnChangeBg" style="display:none;">🌄 ২. নতুন ব্যাকগ্রাউন্ড দিন</label>
     <input type="file" id="bgLoader" accept="image/*">
 
     <button class="btn btn-blue" id="btnDownload" style="display:none;">⬇️ ৩. ডাউনলোড করুন</button>
@@ -124,9 +123,8 @@
             }
             if (mainImg) {
                 if (bgImg) {
-                    // ব্যাকগ্রাউন্ড দিলে মূল ছবি কিছুটা ছোট ফ্রেমে দেখাবে
-                    let p = canvas.width * 0.1;
-                    ctx.drawImage(mainImg, p, p, canvas.width - (p*2), canvas.height - (p*2));
+                    let padding = canvas.width * 0.08;
+                    ctx.drawImage(mainImg, padding, padding, canvas.width - (padding * 2), canvas.height - (padding * 2));
                 } else {
                     ctx.drawImage(mainImg, 0, 0);
                 }
