@@ -3,93 +3,268 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AI BG Changer</title>
+    <title>AI BG Studio - Professional Background Remover</title>
+    <!-- Telegram WebApp Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: white;
+        :root {
+            --bg-color: #0b0f17;
+            --card-bg: #161c28;
+            --accent-green: #00e676;
+            --accent-blue: #2979ff;
+            --accent-gradient: linear-gradient(135deg, #00e676 0%, #00b0ff 100%);
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --border-color: #26334d;
+        }
+
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 16px;
         }
 
-        h2 { color: #4CAF50; margin-bottom: 5px; }
-        p.subtitle { color: #aaa; font-size: 13px; margin-bottom: 20px; text-align: center; }
-
-        .canvas-container {
+        /* Top Navigation Header */
+        .header {
             width: 100%;
-            max-width: 350px;
-            height: 280px;
-            background-color: #1e1e1e;
-            border: 2px dashed #444;
-            border-radius: 12px;
+            max-width: 420px;
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            margin-bottom: 20px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent-gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: #000;
+        }
+
+        .brand-text h1 {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(90deg, #fff, var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge {
+            background: rgba(0, 230, 118, 0.1);
+            color: var(--accent-green);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(0, 230, 118, 0.3);
+        }
+
+        /* Main Workspace Studio */
+        .workspace-card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+        }
+
+        .canvas-area {
+            width: 100%;
+            height: 300px;
+            background: #0d121d;
+            border: 2px dashed var(--border-color);
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             position: relative;
             overflow: hidden;
-            margin-bottom: 15px;
         }
 
-        #outputCanvas { max-width: 100%; max-height: 100%; }
-        .placeholder-text { color: #777; font-size: 14px; text-align: center; }
+        #outputCanvas {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .placeholder-box {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .placeholder-box p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        /* Interactive Action Buttons */
+        .action-group {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
         .btn {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 15px;
-            cursor: pointer;
             width: 100%;
-            max-width: 350px;
-            margin-top: 10px;
-            text-align: center;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
             box-sizing: border-box;
+            text-align: center;
         }
 
-        .btn-blue { background-color: #0088cc; }
-        input[type="file"] { display: none; }
-        #loading { display: none; color: #00e676; font-weight: bold; text-align: center; padding: 10px; font-size: 14px; }
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: #041008;
+            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.25);
+        }
 
-        #downloadResult { display: none; width: 100%; max-width: 350px; margin-top: 15px; text-align: center; }
-        #downloadResult img { max-width: 100%; border-radius: 8px; border: 1px solid #4CAF50; }
-        #downloadResult p { color: #ffca28; font-size: 13px; margin-top: 8px; }
+        .btn-primary:active {
+            transform: scale(0.98);
+        }
+
+        .btn-secondary {
+            background: #1e293b;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* Status & Loading Indicator */
+        #loading {
+            display: none;
+            color: var(--accent-green);
+            font-weight: 600;
+            font-size: 14px;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* Output Download Section */
+        #downloadResult {
+            display: none;
+            width: 100%;
+            max-width: 420px;
+            margin-top: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        #downloadResult img {
+            max-width: 100%;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        #downloadResult p {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
 
-    <h2>AI BG Changer</h2>
-    <p class="subtitle">AI এর মাধ্যমে নিখুঁতভাবে ব্যাকগ্রাউন্ড পরিবর্তন করুন!</p>
-
-    <div class="canvas-container">
-        <canvas id="outputCanvas"></canvas>
-        <div class="placeholder-text" id="placeholder">১. মূল ছবি আপলোড করুন</div>
+    <!-- Header -->
+    <div class="header">
+        <div class="brand">
+            <div class="logo-icon">AI</div>
+            <div class="brand-text">
+                <h1>AI BG Studio</h1>
+            </div>
+        </div>
+        <div class="badge">Unlimited Free</div>
     </div>
 
-    <div id="loading">⚡ AI ব্যাকগ্রাউন্ড সরাচ্ছে, অনুগ্রহ করে কয়েক সেকেন্ড অপেক্ষা করুন...</div>
+    <!-- Canvas Studio Card -->
+    <div class="workspace-card">
+        <div class="canvas-area">
+            <canvas id="outputCanvas"></canvas>
+            <div class="placeholder-box" id="placeholder">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.5">
+                    <rect x="3" y="3" width="18" height="18" rx="5" ry="5"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
+                <p>এখানে মূল ছবি আপলোড করুন</p>
+            </div>
+        </div>
+        <div id="loading">⚡ AI ব্যাকগ্রাউন্ড সরাচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...</div>
+    </div>
 
-    <label for="imageLoader" class="btn">🖼️ ১. মূল ছবি আপলোড করুন</label>
-    <input type="file" id="imageLoader" accept="image/*">
+    <!-- Action Buttons -->
+    <div class="action-group">
+        <label for="imageLoader" class="btn btn-primary">
+            🖼️ ১. মূল ছবি আপলোড করুন
+        </label>
+        <input type="file" id="imageLoader" accept="image/*">
 
-    <label for="bgLoader" class="btn btn-blue" id="btnChangeBg" style="display:none;">🌄 ২. নতুন ব্যাকগ্রাউন্ড দিন</label>
-    <input type="file" id="bgLoader" accept="image/*">
+        <label for="bgLoader" class="btn btn-secondary" id="btnChangeBg" style="display:none;">
+            🌄 ২. নতুন ব্যাকগ্রাউন্ড যোগ করুন
+        </label>
+        <input type="file" id="bgLoader" accept="image/*">
 
-    <button class="btn btn-blue" id="btnDownload" style="display:none;">⬇️ ৩. ছবি প্রস্তুত করুন</button>
+        <button class="btn btn-primary" id="btnDownload" style="display:none; background: linear-gradient(135deg, #00b0ff 0%, #2979ff 100%); color: white;">
+            ⬇️ ৩. ছবি প্রস্তুত করুন
+        </button>
+    </div>
 
+    <!-- Result Area -->
     <div id="downloadResult">
-        <p>👇 ছবির ওপর চেপে ধরে "Save Image" সিলেক্ট করে সেভ করুন:</p>
+        <p>👇 ছবিটির ওপর দীর্ঘক্ষণ চেপে ধরে "Save Image" সিলেক্ট করে সেভ করুন:</p>
         <img id="finalImage" src="" alt="Final Output">
     </div>
 
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+        const tg = window.Telegram?.WebApp;
+        if (tg) tg.expand();
 
         const HF_API_TOKEN = "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";
 
@@ -131,8 +306,8 @@
                     canvas.width = fgImg.width;
                     canvas.height = fgImg.height;
                     loading.style.display = 'none';
-                    btnChangeBg.style.display = 'block';
-                    btnDownload.style.display = 'block';
+                    btnChangeBg.style.display = 'flex';
+                    btnDownload.style.display = 'flex';
                     drawCanvas();
                 };
                 fgImg.src = URL.createObjectURL(blob);
@@ -140,7 +315,11 @@
             } catch (err) {
                 loading.style.display = 'none';
                 placeholder.style.display = 'block';
-                tg.showAlert("ব্যাকগ্রাউন্ড প্রসেস করতে সমস্যা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।");
+                if (tg && tg.showAlert) {
+                    tg.showAlert("প্রসেস করতে সমস্যা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।");
+                } else {
+                    alert("প্রসেস করতে সমস্যা হয়েছে। কিছুক্ষণ পর আবার চেষ্টা করুন।");
+                }
             }
         });
 
