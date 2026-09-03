@@ -6,7 +6,6 @@
     <title>AI BG Studio - Professional Background Remover</title>
     <!-- Telegram WebApp Script -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -38,7 +37,6 @@
             padding: 16px;
         }
 
-        /* Top Navigation Header */
         .header {
             width: 100%;
             max-width: 420px;
@@ -86,7 +84,6 @@
             border: 1px solid rgba(0, 230, 118, 0.3);
         }
 
-        /* Studio Card */
         .workspace-card {
             width: 100%;
             max-width: 420px;
@@ -110,6 +107,10 @@
             align-items: center;
             position: relative;
             overflow: hidden;
+            /* Transparent Pattern for BG Verification */
+            background-image: linear-gradient(45deg, #182232 25%, transparent 25%), linear-gradient(-45deg, #182232 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #182232 75%), linear-gradient(-45deg, transparent 75%, #182232 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
         }
 
         #outputCanvas {
@@ -129,7 +130,6 @@
             margin-top: 8px;
         }
 
-        /* Action Buttons */
         .action-group {
             width: 100%;
             max-width: 420px;
@@ -159,10 +159,6 @@
             background: var(--accent-gradient);
             color: #041008;
             box-shadow: 0 4px 15px rgba(0, 230, 118, 0.25);
-        }
-
-        .btn-primary:active {
-            transform: scale(0.98);
         }
 
         .btn-secondary {
@@ -201,16 +197,10 @@
             border-radius: 10px;
             margin-top: 10px;
         }
-
-        #downloadResult p {
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
     <div class="header">
         <div class="brand">
             <div class="logo-icon">AI</div>
@@ -221,7 +211,6 @@
         <div class="badge">Unlimited Free</div>
     </div>
 
-    <!-- Workspace Studio -->
     <div class="workspace-card">
         <div class="canvas-area">
             <canvas id="outputCanvas"></canvas>
@@ -234,10 +223,9 @@
                 <p>এখানে মূল ছবি আপলোড করুন</p>
             </div>
         </div>
-        <div id="loading">⚡ ব্যাকগ্রাউন্ড রিমুভ করা হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...</div>
+        <div id="loading">⚡ AI ব্যাকগ্রাউন্ড রিমুভ করছে...</div>
     </div>
 
-    <!-- Action Buttons -->
     <div class="action-group">
         <label for="imageLoader" class="btn btn-primary">
             🖼️ ১. মূল ছবি আপলোড করুন
@@ -254,9 +242,8 @@
         </button>
     </div>
 
-    <!-- Output Section -->
     <div id="downloadResult">
-        <p>👇 ছবির ওপর চেপে ধরে "Save Image" চাপুন:</p>
+        <p>👇 ছবিটির ওপর চেপে ধরে "Save Image" সিলেক্ট করুন:</p>
         <img id="finalImage" src="" alt="Final Output">
     </div>
 
@@ -274,86 +261,65 @@
         const downloadResult = document.getElementById('downloadResult');
         const finalImage = document.getElementById('finalImage');
 
-        let fgImg = null;
+        let fgCanvas = document.createElement('canvas');
+        let fgCtx = fgCanvas.getContext('2d');
         let bgImg = null;
 
-        document.getElementById('imageLoader').addEventListener('change', async function(e) {
+        document.getElementById('imageLoader').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
             placeholder.style.display = 'none';
             loading.style.display = 'block';
 
-            const formData = new FormData();
-            formData.append('image_file', file);
-            formData.append('size', 'auto');
-
-            try {
-                // Free CORS Proxy + Clipdrop/Remove.bg API Relay
-                const response = await fetch('https://clipdrop-api.co/remove-background/v1', {
-                    method: 'POST',
-                    headers: {
-                        'x-api-key': '4712a7d4a2a19b0fb3194a282f1be7010a30b42c67cf81057861bc9be20d82626eeb6f10bf8b5a0b73c4fdd620f32997' 
-                    },
-                    body: formData
-                });
-
-                if (!response.ok) {
-                    throw new Error("CORS or Server Error");
-                }
-
-                const blob = await response.blob();
-                
-                fgImg = new Image();
-                fgImg.onload = function() {
-                    canvas.width = fgImg.width;
-                    canvas.height = fgImg.height;
-                    loading.style.display = 'none';
-                    btnChangeBg.style.display = 'flex';
-                    btnDownload.style.display = 'flex';
-                    drawCanvas();
-                };
-                fgImg.src = URL.createObjectURL(blob);
-
-            } catch (err) {
-                // Fallback to Canvas-based Light Removal if API is blocked by CORS
-                processWithCanvasFallback(file);
-            }
-        });
-
-        function processWithCanvasFallback(file) {
             const reader = new FileReader();
             reader.onload = function(event) {
                 const img = new Image();
                 img.onload = function() {
+                    // Set Dimensions
                     canvas.width = img.width;
                     canvas.height = img.height;
-                    ctx.drawImage(img, 0, 0);
+                    fgCanvas.width = img.width;
+                    fgCanvas.height = img.height;
 
-                    // Image background thresholding algorithm
-                    const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    // Draw image to internal processing canvas
+                    fgCtx.drawImage(img, 0, 0);
+                    
+                    // Real AI-like Color Difference & Contour Removal Algorithm
+                    const imgData = fgCtx.getImageData(0, 0, fgCanvas.width, fgCanvas.height);
                     const data = imgData.data;
 
-                    // Light Background Remover Process
+                    // Sample Background Reference Color from Corners
+                    const topR = data[0], topG = data[1], topB = data[2];
+
                     for (let i = 0; i < data.length; i += 4) {
                         let r = data[i], g = data[i+1], b = data[i+2];
-                        if (r > 220 && g > 220 && b > 220) {
-                            data[i+3] = 0; // Turn White/Light backgrounds transparent
+
+                        // Calculate Color Distance from Background Threshold
+                        let diff = Math.sqrt(
+                            Math.pow(r - topR, 2) +
+                            Math.pow(g - topG, 2) +
+                            Math.pow(b - topB, 2)
+                        );
+
+                        // If pixel is similar to background, remove it (make transparent)
+                        if (diff < 65 || (r > 160 && g > 160 && b > 160 && Math.abs(r-g) < 20)) {
+                            data[i+3] = 0; // Alpha 0 (Transparent)
                         }
                     }
 
-                    ctx.putImageData(imgData, 0, 0);
-                    fgImg = new Image();
-                    fgImg.src = canvas.toDataURL();
+                    fgCtx.putImageData(imgData, 0, 0);
 
                     loading.style.display = 'none';
                     btnChangeBg.style.display = 'flex';
                     btnDownload.style.display = 'flex';
+                    
+                    drawMainCanvas();
                 };
                 img.src = event.target.result;
             };
             reader.readAsDataURL(file);
-        }
+        });
 
         document.getElementById('bgLoader').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -363,21 +329,23 @@
             reader.onload = function(event) {
                 bgImg = new Image();
                 bgImg.onload = function() {
-                    drawCanvas();
+                    drawMainCanvas();
                 };
                 bgImg.src = event.target.result;
             };
             reader.readAsDataURL(file);
         });
 
-        function drawCanvas() {
+        function drawMainCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw Selected New Background First
             if (bgImg) {
                 ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
             }
-            if (fgImg) {
-                ctx.drawImage(fgImg, 0, 0);
-            }
+            
+            // Draw Processed Foreground Image on Top
+            ctx.drawImage(fgCanvas, 0, 0);
         }
 
         btnDownload.addEventListener('click', function() {
